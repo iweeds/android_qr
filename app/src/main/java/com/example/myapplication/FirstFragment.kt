@@ -1,5 +1,9 @@
 package com.example.myapplication
 
+import android.app.PendingIntent
+import android.content.Intent
+import android.content.IntentFilter
+import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +25,13 @@ import com.journeyapps.barcodescanner.DefaultDecoderFactory
 class FirstFragment : Fragment() {
 
     private val CAMERA_PERMISSION = "android.permission.CAMERA"
+
+    private var nfcAdapter: NfcAdapter? = null
+    private var nfcPendingIntent: PendingIntent? = null
+    private val intentFiltersArray: Array<IntentFilter?> = arrayOfNulls(1)
+    private val techListsArray: Array<Array<String>?> = arrayOfNulls(1)
+
+
     private var currentTime = 0L
     private var _binding: FragmentFirstBinding? = null
 
@@ -86,15 +97,19 @@ class FirstFragment : Fragment() {
         _binding = null
     }
 
+
     override fun onResume() {
         super.onResume()
         binding.barcodeScanner.resume()
+
     }
 
     override fun onPause() {
         super.onPause()
         binding.barcodeScanner.pause()
+
     }
+
 
     /**
      * QR 코드 스캐너 초기화
@@ -129,4 +144,30 @@ class FirstFragment : Fragment() {
             .check()
 
     }
+
+
+    private fun readNfc() {
+
+        nfcAdapter = NfcAdapter.getDefaultAdapter(requireContext())
+        if (nfcAdapter == null) {
+            // NFC를 지원하지 않는 경우에 대한 처리
+        } else {
+            nfcPendingIntent = PendingIntent.getActivity(
+                requireContext(), 0, Intent(requireContext(), javaClass)
+                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_MUTABLE
+            )
+            val ndef = IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED)
+            try {
+                ndef.addDataType("text/plain")
+
+                intentFiltersArray[0] = ndef
+                techListsArray[0] = arrayOf("android.nfc.tech.Ndef")
+
+            } catch (e: IntentFilter.MalformedMimeTypeException) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+
 }
