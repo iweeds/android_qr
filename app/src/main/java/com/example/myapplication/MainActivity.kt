@@ -90,17 +90,20 @@ class MainActivity : AppCompatActivity() {
             val rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
             Log.d("MainActivity", "call onNewIntent >> ${rawMessages}")
 
-
             if (rawMessages != null) {
                 val messages = arrayOfNulls<NdefMessage>(rawMessages.size)
                 for (i in rawMessages.indices) {
                     messages[i] = rawMessages[i] as NdefMessage
                 }
                 if (messages.isNotEmpty()) {
-                    val payload = String(messages[0]?.records?.get(0)?.payload ?: byteArrayOf())
-                    // payload를 처리하거나 표시하는 작업을 수행
-
-                    Log.d("MainActivity", "payload")
+                    val payloadBytes = messages[0]?.records?.get(0)?.payload
+                    if (payloadBytes != null) {
+                        val payload = String(payloadBytes)
+                        // payload를 처리하거나 표시하는 작업을 수행
+                        Log.d("MainActivity", "Payload: $payload")
+                    } else {
+                        Log.d("MainActivity", "Payload is empty")
+                    }
                 }
             }
         }
@@ -118,8 +121,8 @@ class MainActivity : AppCompatActivity() {
             )
             val ndef = IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED)
             try {
-                ndef.addDataType("text/plain")
-
+               // ndef.addDataType("text/plain")
+                ndef.addDataType("application/json")
                 intentFiltersArray[0] = ndef
                 techListsArray[0] = arrayOf("android.nfc.tech.Ndef")
 
