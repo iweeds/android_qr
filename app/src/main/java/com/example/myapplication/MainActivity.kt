@@ -4,12 +4,14 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_MUTABLE
 import android.content.Intent
 import android.content.IntentFilter
-import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
+import android.nfc.Tag
+import android.nfc.tech.Ndef
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -17,6 +19,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
+import java.nio.charset.StandardCharsets
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,20 +28,10 @@ class MainActivity : AppCompatActivity() {
 
     private var nfcAdapter: NfcAdapter? = null
     private var nfcPendingIntent: PendingIntent? = null
-    private val intentFiltersArray: Array<IntentFilter?> = arrayOfNulls(1)
-    private val techListsArray: Array<Array<String>?> = arrayOfNulls(1)
+    private var intentFiltersArray: Array<IntentFilter?> = arrayOfNulls(1)
+    private var techListsArray: Array<Array<String>?> = arrayOfNulls(1)
 
 
-    override fun onResume() {
-        super.onResume()
-        nfcAdapter?.enableForegroundDispatch(this@MainActivity, nfcPendingIntent, intentFiltersArray, techListsArray)
-
-    }
-
-    override fun onPause() {
-        super.onPause()
-        nfcAdapter?.disableForegroundDispatch(this@MainActivity)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,7 +50,9 @@ class MainActivity : AppCompatActivity() {
                 .setAction("Action", null).show()
         }
 
-        readNfc()
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this@MainActivity)
+
+        setupNfcFilter()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -82,52 +77,82 @@ class MainActivity : AppCompatActivity() {
                 || super.onSupportNavigateUp()
     }
 
+
+    override fun onResume() {
+        super.onResume()
+
+        /*
+        nfcAdapter?.enableForegroundDispatch(
+            this@MainActivity,
+            nfcPendingIntent,
+            intentFiltersArray,
+            techListsArray
+        )*/
+
+        nfcAdapter?.enableForegroundDispatch(
+            this,
+            nfcPendingIntent,
+            null,
+            null
+        )
+
+        Log.d(javaClass.simpleName, "call enableForegroundDispatch!")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcAdapter?.disableForegroundDispatch(this@MainActivity)
+        Log.d(javaClass.simpleName, "call disableForegroundDispatch")
+
+    }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        Log.d("MainActivity", "call onNewIntent")
+        Log.d(javaClass.simpleName, "call onNewIntent >> action >>  ${intent?.action}")
+        processIntent(intent)
+    }
 
-        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent?.action) {
-            val rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
-            Log.d("MainActivity", "call onNewIntent >> ${rawMessages}")
+    private fun setupNfcFilter() {
 
-            if (rawMessages != null) {
-                val messages = arrayOfNulls<NdefMessage>(rawMessages.size)
-                for (i in rawMessages.indices) {
-                    messages[i] = rawMessages[i] as NdefMessage
-                }
-                if (messages.isNotEmpty()) {
-                    val payloadBytes = messages[0]?.records?.get(0)?.payload
-                    if (payloadBytes != null) {
-                        val payload = String(payloadBytes)
-                        // payload를 처리하거나 표시하는 작업을 수행
-                        Log.d("MainActivity", "Payload: $payload")
-                    } else {
-                        Log.d("MainActivity", "Payload is empty")
-                    }
+        if (nfcAdapter == null) {
+            // NFC를 지원하지 않는 경우에 대한 처리
+            Log.d(javaClass.simpleName, "call nfcAdapter == null")
+        } else {
+            Log.d(javaClass.simpleName, "call nfcAdapter != null")
+
+            val intent = Intent(this@MainActivity, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            nfcPendingIntent = PendingIntent.getActivity(this@MainActivity, 9999, intent, FLAG_MUTABLE)
+
+            val filter = IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED).apply {
+                try {
+                    addDataType("*/*")
+                } catch (e: IntentFilter.MalformedMimeTypeException) {
+                    throw RuntimeException("fail", e)
                 }
             }
+
+            intentFiltersArray = arrayOf(filter)
+            techListsArray = arrayOf(arrayOf(Ndef::class.java.name))
         }
     }
 
-    private fun readNfc() {
+    private fun processIntent(intent: Intent?) {
 
-        nfcAdapter = NfcAdapter.getDefaultAdapter(applicationContext)
-        if (nfcAdapter == null) {
-            // NFC를 지원하지 않는 경우에 대한 처리
-        } else {
-            nfcPendingIntent = PendingIntent.getActivity(
-                this, 0, Intent(this, javaClass)
-                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), FLAG_MUTABLE
-            )
-            val ndef = IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED)
-            try {
-               // ndef.addDataType("text/plain")
-                ndef.addDataType("application/json")
-                intentFiltersArray[0] = ndef
-                techListsArray[0] = arrayOf("android.nfc.tech.Ndef")
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED != intent?.action) {
+            return
+        }
 
-            } catch (e: IntentFilter.MalformedMimeTypeException) {
-                e.printStackTrace()
+        val ndef = Ndef.get(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as Tag?)
+
+        if (ndef != null) {
+            ndef.connect()
+            val payloadBytes = ndef.ndefMessage.records[0].payload
+            if (payloadBytes != null) {
+                val payload = String(payloadBytes, StandardCharsets.UTF_8)
+                Log.d(javaClass.simpleName, "Payload: $payload")
+                Toast.makeText(this, "payload >>. $payload", Toast.LENGTH_LONG).show()
+            } else {
+                Log.d(javaClass.simpleName, "Payload is empty")
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.example.myapplication
 
 import android.app.PendingIntent
-import android.content.Intent
 import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.os.Bundle
@@ -25,6 +24,7 @@ import com.journeyapps.barcodescanner.DefaultDecoderFactory
 class FirstFragment : Fragment() {
 
     private val CAMERA_PERMISSION = "android.permission.CAMERA"
+    private val NFC_PERMISSION = "android.permission.NFC"
 
     private var nfcAdapter: NfcAdapter? = null
     private var nfcPendingIntent: PendingIntent? = null
@@ -46,7 +46,7 @@ class FirstFragment : Fragment() {
     private var permissionListener: PermissionListener = object : PermissionListener {
         override fun onPermissionGranted() {
             Toast.makeText(requireContext(), "권한 부여됨!", Toast.LENGTH_SHORT).show()
-            startCamera()
+//            startCamera()
         }
 
         override fun onPermissionDenied(deniedPermissions: List<String>) {
@@ -101,13 +101,11 @@ class FirstFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.barcodeScanner.resume()
-
     }
 
     override fun onPause() {
         super.onPause()
         binding.barcodeScanner.pause()
-
     }
 
 
@@ -143,30 +141,6 @@ class FirstFragment : Fragment() {
             .setPermissions(CAMERA_PERMISSION)
             .check()
 
-    }
-
-
-    private fun readNfc() {
-
-        nfcAdapter = NfcAdapter.getDefaultAdapter(requireContext())
-        if (nfcAdapter == null) {
-            // NFC를 지원하지 않는 경우에 대한 처리
-        } else {
-            nfcPendingIntent = PendingIntent.getActivity(
-                requireContext(), 0, Intent(requireContext(), javaClass)
-                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_MUTABLE
-            )
-            val ndef = IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED)
-            try {
-                ndef.addDataType("text/plain")
-
-                intentFiltersArray[0] = ndef
-                techListsArray[0] = arrayOf("android.nfc.tech.Ndef")
-
-            } catch (e: IntentFilter.MalformedMimeTypeException) {
-                e.printStackTrace()
-            }
-        }
     }
 
 
