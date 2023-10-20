@@ -143,5 +143,9 @@ class FirstFragment : Fragment() {
 
     }
 
+    fun setupFragmentUI(payload: String) {
+        binding.textResult.text = payload
+    }
+
 
 }

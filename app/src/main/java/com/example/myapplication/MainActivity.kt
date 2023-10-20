@@ -13,13 +13,19 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.example.myapplication.repo.PointRepo
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.nio.charset.StandardCharsets
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -151,9 +157,44 @@ class MainActivity : AppCompatActivity() {
                 val payload = String(payloadBytes, StandardCharsets.UTF_8)
                 Log.d(javaClass.simpleName, "Payload: $payload")
                 Toast.makeText(this, "payload >>. $payload", Toast.LENGTH_LONG).show()
+
+                val point = Gson().fromJson(payload, Point::class.java)
+                insertPoint(point)
+
             } else {
                 Log.d(javaClass.simpleName, "Payload is empty")
             }
         }
+    }
+
+
+    private fun setupUI(payload: String) {
+        val myFragment: FirstFragment? =
+            supportFragmentManager.findFragmentById(R.id.action_SecondFragment_to_FirstFragment) as FirstFragment?
+        myFragment?.setupFragmentUI(payload)
+
+    }
+
+
+    /**
+     * db 에 포인트 저장
+     */
+    private fun insertPoint(point: Point) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            // 비동기 작업을 수행
+            // UI를 차단하지 않고 백그라운드 스레드에서 실행
+            val dao = PointRepo.getInstance(application).pointDao
+            dao.insertSubscriber(point)
+
+            selectAllPoint().forEach {
+                Log.d(javaClass.simpleName, "select point!! >> $it")
+            }
+        }
+    }
+
+
+    private fun selectAllPoint(): List<Point> {
+        val dao = PointRepo.getInstance(application).pointDao
+        return dao.getAll()
     }
 }
