@@ -149,21 +149,29 @@ class MainActivity : AppCompatActivity() {
         }
 
         val ndef = Ndef.get(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as Tag?)
+        if (ndef == null) {
+            Log.d(javaClass.simpleName, "ndef is null")
+            return
+        }
 
-        if (ndef != null) {
-            ndef.connect()
-            val payloadBytes = ndef.ndefMessage.records[0].payload
-            if (payloadBytes != null) {
-                val payload = String(payloadBytes, StandardCharsets.UTF_8)
-                Log.d(javaClass.simpleName, "Payload: $payload")
-                Toast.makeText(this, "payload >>. $payload", Toast.LENGTH_LONG).show()
+        ndef.connect()
 
-                val point = Gson().fromJson(payload, Point::class.java)
-                insertPoint(point)
+        if (ndef.ndefMessage != null) {
+            Log.d(javaClass.simpleName, "nfc message is empty")
+            return
+        }
 
-            } else {
-                Log.d(javaClass.simpleName, "Payload is empty")
-            }
+        val payloadBytes = ndef.ndefMessage.records[0].payload
+        if (payloadBytes != null) {
+            val payload = String(payloadBytes, StandardCharsets.UTF_8)
+            Log.d(javaClass.simpleName, "Payload: $payload")
+            Toast.makeText(this, "payload >>. $payload", Toast.LENGTH_LONG).show()
+
+//            val point = Gson().fromJson(payload, Point::class.java)
+//            insertPoint(point)
+
+        } else {
+            Log.d(javaClass.simpleName, "Payload is empty")
         }
     }
 
@@ -184,7 +192,7 @@ class MainActivity : AppCompatActivity() {
             // 비동기 작업을 수행
             // UI를 차단하지 않고 백그라운드 스레드에서 실행
             val dao = PointRepo.getInstance(application).pointDao
-            dao.insertSubscriber(point)
+//            dao.insertPoint(point)
 
             selectAllPoint().forEach {
                 Log.d(javaClass.simpleName, "select point!! >> $it")

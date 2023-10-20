@@ -1,9 +1,11 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    kotlin("kapt")
 }
 
 android {
+
     namespace = "com.example.myapplication"
     compileSdkVersion(rootProject.extra["compileSdkVersion"] as Int)
 
@@ -57,6 +59,7 @@ dependencies {
     implementation("io.github.ParkSangGwon:tedpermission-normal:3.3.0")
 
     implementation("androidx.room:room-runtime:2.5.0")
+//    kapt("androidx.room:room-compiler:2.5.0")
     annotationProcessor("androidx.room:room-compiler:2.5.0")
 
     implementation("com.google.code.gson:gson:2.8.9") // gson
