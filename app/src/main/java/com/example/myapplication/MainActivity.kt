@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
 
         ndef.connect()
 
-        if (ndef.ndefMessage != null) {
+        if (ndef.ndefMessage == null) {
             Log.d(javaClass.simpleName, "nfc message is empty")
             return
         }
