@@ -14,6 +14,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.whenStarted
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -23,7 +24,9 @@ import com.example.myapplication.repo.PointRepo
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.charset.StandardCharsets
 
 
@@ -36,7 +39,6 @@ class MainActivity : AppCompatActivity() {
     private var nfcPendingIntent: PendingIntent? = null
     private var intentFiltersArray: Array<IntentFilter?> = arrayOfNulls(1)
     private var techListsArray: Array<Array<String>?> = arrayOfNulls(1)
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,6 +61,10 @@ class MainActivity : AppCompatActivity() {
         nfcAdapter = NfcAdapter.getDefaultAdapter(this@MainActivity)
 
         setupNfcFilter()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            selectAllPoint()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -126,8 +132,10 @@ class MainActivity : AppCompatActivity() {
         } else {
             Log.d(javaClass.simpleName, "call nfcAdapter != null")
 
-            val intent = Intent(this@MainActivity, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            nfcPendingIntent = PendingIntent.getActivity(this@MainActivity, 9999, intent, FLAG_MUTABLE)
+            val intent =
+                Intent(this@MainActivity, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            nfcPendingIntent =
+                PendingIntent.getActivity(this@MainActivity, 9999, intent, FLAG_MUTABLE)
 
             val filter = IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED).apply {
                 try {
@@ -167,8 +175,8 @@ class MainActivity : AppCompatActivity() {
             Log.d(javaClass.simpleName, "Payload: $payload")
             Toast.makeText(this, "payload >>. $payload", Toast.LENGTH_LONG).show()
 
-//            val point = Gson().fromJson(payload, Point::class.java)
-//            insertPoint(point)
+            val point = Gson().fromJson(payload, Point::class.java)
+            insertPoint(point)
 
         } else {
             Log.d(javaClass.simpleName, "Payload is empty")
@@ -189,20 +197,30 @@ class MainActivity : AppCompatActivity() {
      */
     private fun insertPoint(point: Point) {
         lifecycleScope.launch(Dispatchers.IO) {
-            // 비동기 작업을 수행
-            // UI를 차단하지 않고 백그라운드 스레드에서 실행
-            val dao = PointRepo.getInstance(application).pointDao
-//            dao.insertPoint(point)
+            /*
+            withContext(Dispatchers.IO) {
 
-            selectAllPoint().forEach {
-                Log.d(javaClass.simpleName, "select point!! >> $it")
-            }
+            }*/
+            val dao = PointRepo.getInstance(application).pointDao
+            dao.insertPoint(point)
+            Log.d(javaClass.simpleName, "insertPoint $point")
+
+            selectAllPoint()
         }
     }
 
 
     private fun selectAllPoint(): List<Point> {
+
+        Log.d(javaClass.simpleName, "selectAllPoint!")
+
         val dao = PointRepo.getInstance(application).pointDao
-        return dao.getAll()
+        val pointList = dao.getAll()
+
+        pointList.forEach {
+            Log.d(javaClass.simpleName, "selectAllPoint >> point >> $it!")
+        }
+
+        return pointList
     }
 }
