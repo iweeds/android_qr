@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.myapplication.databinding.FragmentFirstBinding
+import com.google.gson.Gson
 import com.google.zxing.BarcodeFormat
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
@@ -65,7 +66,11 @@ class FirstFragment : Fragment() {
     private val callback = BarcodeCallback { result ->
         if (System.currentTimeMillis() - this.currentTime >= 3000) {
             result?.let {
-                binding.textResult.text = it.result.text
+                val payload = it.result.text
+                val point = Gson().fromJson(payload, Point::class.java)
+                (activity as MainActivity).insertPoint(point)
+
+                binding.textResult.text = payload
             }
         }
         this.currentTime = System.currentTimeMillis()

@@ -39,6 +39,8 @@ class MainActivity : AppCompatActivity() {
     private var nfcPendingIntent: PendingIntent? = null
     private var intentFiltersArray: Array<IntentFilter?> = arrayOfNulls(1)
     private var techListsArray: Array<Array<String>?> = arrayOfNulls(1)
+    
+    private val TAG = javaClass.simpleName
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,19 +110,19 @@ class MainActivity : AppCompatActivity() {
             null
         )
 
-        Log.d(javaClass.simpleName, "call enableForegroundDispatch!")
+        Log.d(TAG, "call enableForegroundDispatch!")
     }
 
     override fun onPause() {
         super.onPause()
         nfcAdapter?.disableForegroundDispatch(this@MainActivity)
-        Log.d(javaClass.simpleName, "call disableForegroundDispatch")
+        Log.d(TAG, "call disableForegroundDispatch")
 
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        Log.d(javaClass.simpleName, "call onNewIntent >> action >>  ${intent?.action}")
+        Log.d(TAG, "call onNewIntent >> action >>  ${intent?.action}")
         processIntent(intent)
     }
 
@@ -128,9 +130,9 @@ class MainActivity : AppCompatActivity() {
 
         if (nfcAdapter == null) {
             // NFC를 지원하지 않는 경우에 대한 처리
-            Log.d(javaClass.simpleName, "call nfcAdapter == null")
+            Log.d(TAG, "call nfcAdapter == null")
         } else {
-            Log.d(javaClass.simpleName, "call nfcAdapter != null")
+            Log.d(TAG, "call nfcAdapter != null")
 
             val intent =
                 Intent(this@MainActivity, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -158,28 +160,28 @@ class MainActivity : AppCompatActivity() {
 
         val ndef = Ndef.get(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as Tag?)
         if (ndef == null) {
-            Log.d(javaClass.simpleName, "ndef is null")
+            Log.d(TAG, "ndef is null")
             return
         }
 
         ndef.connect()
 
         if (ndef.ndefMessage == null) {
-            Log.d(javaClass.simpleName, "nfc message is empty")
+            Log.d(TAG, "nfc message is empty")
             return
         }
 
         val payloadBytes = ndef.ndefMessage.records[0].payload
         if (payloadBytes != null) {
             val payload = String(payloadBytes, StandardCharsets.UTF_8)
-            Log.d(javaClass.simpleName, "Payload: $payload")
+            Log.d(TAG, "Payload: $payload")
             Toast.makeText(this, "payload >>. $payload", Toast.LENGTH_LONG).show()
 
             val point = Gson().fromJson(payload, Point::class.java)
             insertPoint(point)
 
         } else {
-            Log.d(javaClass.simpleName, "Payload is empty")
+            Log.d(TAG, "Payload is empty")
         }
     }
 
@@ -195,15 +197,12 @@ class MainActivity : AppCompatActivity() {
     /**
      * db 에 포인트 저장
      */
-    private fun insertPoint(point: Point) {
+    fun insertPoint(point: Point) {
         lifecycleScope.launch(Dispatchers.IO) {
-            /*
-            withContext(Dispatchers.IO) {
+            Log.d(TAG, "insertPoint >> $point")
 
-            }*/
             val dao = PointRepo.getInstance(application).pointDao
             dao.insertPoint(point)
-            Log.d(javaClass.simpleName, "insertPoint $point")
 
             selectAllPoint()
         }
@@ -212,13 +211,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun selectAllPoint(): List<Point> {
 
-        Log.d(javaClass.simpleName, "selectAllPoint!")
+        Log.d(TAG, "selectAllPoint!")
 
         val dao = PointRepo.getInstance(application).pointDao
         val pointList = dao.getAll()
 
         pointList.forEach {
-            Log.d(javaClass.simpleName, "selectAllPoint >> point >> $it!")
+            Log.d(TAG, "selectAllPoint >> point >> $it!")
         }
 
         return pointList
