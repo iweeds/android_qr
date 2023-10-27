@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +24,7 @@ import com.journeyapps.barcodescanner.DefaultDecoderFactory
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 class FirstFragment : Fragment() {
+    private val TAG = javaClass.simpleName
 
     private val CAMERA_PERMISSION = "android.permission.CAMERA"
     private val NFC_PERMISSION = "android.permission.NFC"
@@ -71,8 +73,10 @@ class FirstFragment : Fragment() {
                 (activity as MainActivity).insertPoint(point)
 
                 binding.textResult.text = payload
+                Log.d(TAG, "barcode callback >> $payload")
             }
         }
+
         this.currentTime = System.currentTimeMillis()
     }
 
@@ -89,9 +93,7 @@ class FirstFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.buttonFirst.setOnClickListener {
-            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
-        }
+
 
         requestCameraPermission()
         initBarcodeScannerView()

@@ -1,51 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".FirstFragment">
+    android:layout_height="match_parent">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_PointArea"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp">
+        android:layout_height="wrap_content"
+        android:background="@color/black"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        >
 
-        <Button
-            android:id="@+id/button_first"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/next"
-            app:layout_constraintBottom_toTopOf="@id/barcode_scanner"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-
-        <com.journeyapps.barcodescanner.DecoratedBarcodeView
-            android:id="@+id/barcode_scanner"
-            android:layout_width="0dp"
-            android:layout_height="400dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:zxing_scanner_layout="@layout/zxing_scanner_layout" />
-
-
-        <TextView
-            android:id="@+id/text_result"
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            app:layout_constraintTop_toBottomOf="@id/barcode_scanner"
-            app:layout_constraintEnd_toStartOf="@+id/button_first"
+            android:orientation="vertical"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            tools:layout_editor_absoluteY="16dp" />
+            app:layout_constraintEnd_toEndOf="parent"
+            >
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textSize="20dp"
+                android:text="지금까지 받은 포인트 >">
+
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="45dp"
+                android:text="1,065 P">
+
+            </TextView>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</androidx.core.widget.NestedScrollView>
+
+    <com.journeyapps.barcodescanner.DecoratedBarcodeView
+        android:id="@+id/barcode_scanner"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/layout_PointArea"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:zxing_scanner_layout="@layout/zxing_scanner_layout" />
+
+
+    <TextView
+        android:id="@+id/text_result"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="200dp"
+        android:text="담배꽁초 수거함에 담배꽁초를 버린뒤\n인식하고 포인트를 받아보세요 :)"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/barcode_scanner"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
