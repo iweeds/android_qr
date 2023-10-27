@@ -150,8 +150,8 @@ class FirstFragment : Fragment() {
 
     }
 
-    fun setupFragmentUI(payload: String) {
-        binding.textResult.text = payload
+    fun setupFragmentUI(earnPoint: String) {
+        binding.textTotalPoint.text = earnPoint
     }
 
 

@@ -65,7 +65,12 @@ class MainActivity : AppCompatActivity() {
         setupNfcFilter()
 
         lifecycleScope.launch(Dispatchers.IO) {
-            selectAllPoint()
+            val pointList = selectAllPoint()
+            val sumPoint = pointList.sumOf { it.earn.toInt() }.toString()
+
+            lifecycleScope.launch(Dispatchers.Main) {
+                setupUI(sumPoint)
+            }
         }
     }
 
@@ -186,10 +191,10 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun setupUI(payload: String) {
+    private fun setupUI(earnPoint: String) {
         val myFragment: FirstFragment? =
             supportFragmentManager.findFragmentById(R.id.action_SecondFragment_to_FirstFragment) as FirstFragment?
-        myFragment?.setupFragmentUI(payload)
+        myFragment?.setupFragmentUI(earnPoint)
 
     }
 
@@ -204,8 +209,13 @@ class MainActivity : AppCompatActivity() {
             val dao = PointRepo.getInstance(application).pointDao
             dao.insertPoint(point)
 
-            selectAllPoint()
+            setupUI(totalPoint().toString())
+
         }
+    }
+
+    fun totalPoint(): Int {
+        return selectAllPoint().sumOf { it.earn.toInt() }
     }
 
 
