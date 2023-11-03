@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -24,6 +25,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.nio.charset.StandardCharsets
+import java.text.DecimalFormat
 
 
 class MainActivity : AppCompatActivity() {
@@ -58,12 +60,12 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             val pointList = selectAllPoint()
-            val sumPoint = pointList.sumOf { it.earn.toInt() }.toString()
+            val sumPoint = pointList.sumOf { it.earn.toLong() }
 
-            lifecycleScope.launch(Dispatchers.Main) {
-                setupUI(sumPoint)
-            }
+            Log.d(TAG, "sum point >> $sumPoint")
+            setupUI(sumPoint)
         }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -183,11 +185,13 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun setupUI(earnPoint: String) {
-        val myFragment: FirstFragment? =
-            supportFragmentManager.findFragmentById(R.id.action_SecondFragment_to_FirstFragment) as FirstFragment?
-        myFragment?.setupFragmentUI(earnPoint)
+    private fun setupUI(earnPoint: Long) {
+        val hostFragment: NavHostFragment? =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment?
 
+        val firstFragment = hostFragment?.childFragmentManager?.fragments?.get(0) as FirstFragment
+        val decimalFormat = DecimalFormat("#,###")
+        firstFragment.setupFragmentUI(decimalFormat.format(earnPoint))
     }
 
 
@@ -201,13 +205,12 @@ class MainActivity : AppCompatActivity() {
             val dao = PointRepo.getInstance(application).pointDao
             dao.insertPoint(point)
 
-            setupUI(totalPoint().toString())
-
+            setupUI(totalPoint())
         }
     }
 
-    fun totalPoint(): Int {
-        return selectAllPoint().sumOf { it.earn.toInt() }
+    fun totalPoint(): Long {
+        return selectAllPoint().sumOf { it.earn.toLong() }
     }
 
 

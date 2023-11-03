@@ -1,8 +1,5 @@
 package com.example.myapplication
 
-import android.app.PendingIntent
-import android.content.IntentFilter
-import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import com.example.myapplication.databinding.FragmentFirstBinding
 import com.google.gson.Gson
 import com.google.zxing.BarcodeFormat
@@ -27,12 +23,6 @@ class FirstFragment : Fragment() {
     private val TAG = javaClass.simpleName
 
     private val CAMERA_PERMISSION = "android.permission.CAMERA"
-    private val NFC_PERMISSION = "android.permission.NFC"
-
-    private var nfcAdapter: NfcAdapter? = null
-    private var nfcPendingIntent: PendingIntent? = null
-    private val intentFiltersArray: Array<IntentFilter?> = arrayOfNulls(1)
-    private val techListsArray: Array<Array<String>?> = arrayOfNulls(1)
 
 
     private var currentTime = 0L
@@ -72,7 +62,6 @@ class FirstFragment : Fragment() {
                 val point = Gson().fromJson(payload, Point::class.java)
                 (activity as MainActivity).insertPoint(point)
 
-                binding.textResult.text = payload
                 Log.d(TAG, "barcode callback >> $payload")
             }
         }
@@ -93,8 +82,6 @@ class FirstFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-
 
         requestCameraPermission()
         initBarcodeScannerView()

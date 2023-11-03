@@ -117,6 +117,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="90dp"
+        android:textSize="16dp"
         android:text="담배꽁초 수거함에 담배꽁초를 버린뒤\n인식하고 포인트를 받아보세요 :)"
         android:textAlignment="center"
         android:textColor="@color/white"
