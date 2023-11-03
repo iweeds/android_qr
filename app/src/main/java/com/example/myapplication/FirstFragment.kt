@@ -86,6 +86,7 @@ class FirstFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
+        _binding?.layoutPointArea?.bringToFront()
         return binding.root
     }
 
