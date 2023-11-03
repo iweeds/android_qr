@@ -186,12 +186,15 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setupUI(earnPoint: Long) {
-        val hostFragment: NavHostFragment? =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment?
 
-        val firstFragment = hostFragment?.childFragmentManager?.fragments?.get(0) as FirstFragment
-        val decimalFormat = DecimalFormat("#,###")
-        firstFragment.setupFragmentUI(decimalFormat.format(earnPoint))
+        lifecycleScope.launch(Dispatchers.Main) {
+            val hostFragment: NavHostFragment? =
+                supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment?
+
+            val firstFragment = hostFragment?.childFragmentManager?.fragments?.get(0) as FirstFragment
+            val decimalFormat = DecimalFormat("#,###")
+            firstFragment.setupFragmentUI(decimalFormat.format(earnPoint))
+        }
     }
 
 
@@ -205,7 +208,11 @@ class MainActivity : AppCompatActivity() {
             val dao = PointRepo.getInstance(application).pointDao
             dao.insertPoint(point)
 
-            setupUI(totalPoint())
+
+            val sumEarn = totalPoint()
+            Log.d(TAG, "sumEarn >> $sumEarn")
+            setupUI(sumEarn)
+
         }
     }
 
